@@ -107,6 +107,7 @@ export const useAudioRecorder = () => {
           visualize();
           mediaRecorderRef.current?.start();
           console.log('🎙️ Voice started, recording audio...');
+          console.log("")
         },
         onVoiceStop: () => {
           console.log('🔴 Silence');
@@ -121,6 +122,7 @@ export const useAudioRecorder = () => {
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
             console.log('🧩 Audio chunk size (bytes):', audioBlob.size);
             console.log('📡 Backend Call: sending audio chunk to backend...');
+            console.log("")
             audioChunksRef.current = [];
           };
 
