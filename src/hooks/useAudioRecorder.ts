@@ -125,11 +125,28 @@ export const useAudioRecorder = () => {
           };
 
         },
-        voice_start: 300,
-        voice_stop: 500,
-        smoothingTimeConstant: 0.9,
-        energy_threshold_ratio_pos: 3.0,
-        energy_threshold_ratio_neg: 2.0,
+       // ✅ How long (in ms) the sound must stay above the threshold
+      // before it's considered as the user "started speaking"
+      voice_start: 300,
+
+      // ✅ How long (in ms) the sound must stay below the threshold
+      // before it's considered "silent" (i.e., the user stopped speaking)
+      voice_stop: 200,
+
+      // ✅ Controls how smooth the energy curve is.
+      // Higher values (closer to 1) = smoother, but slower response.
+      // Lower values = more reactive, but jittery.
+      smoothingTimeConstant: 0.9,
+
+      // ✅ Multiplier of average energy needed to trigger voice start.
+      // Higher = requires louder sound to trigger speech.
+      // Use 3.0 to avoid false triggers from background noise.
+      energy_threshold_ratio_pos: 3.0,
+
+      // ✅ Multiplier of average energy needed to confirm silence.
+      // Higher = more lenient; avoids cutting off speech too quickly.
+      // Use 2.0 to ensure it doesn't stop on soft trailing speech.
+      energy_threshold_ratio_neg: 2.0,
       } as any); // ✅ This disables TypeScript validation for this object
 
       vadControllerRef.current = vadController;
