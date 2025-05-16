@@ -23,9 +23,9 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ audioData, isRecordin
       />
       
       {/* Center horizontal line */}
-      <div 
+      {/* <div 
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110px] h-[1px] bg-emerald-500"
-      />
+      /> */}
       
       {/* Audio bars container with overflow hidden */}
       <div className="absolute inset-0 rounded-full overflow-hidden">
