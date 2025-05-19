@@ -21,6 +21,13 @@ interface FullVADOptions {
 
 export const useAudioRecorder = () => {
   const [audioState, setAudioState] = useState<AudioState>(INITIAL_AUDIO_STATE);
+  const [vadConfig, setVadConfig] = useState({
+    voice_start: 400,
+    voice_stop: 1000,
+    smoothingTimeConstant: 0.95,
+    energy_threshold_ratio_pos: 3.5,
+    energy_threshold_ratio_neg: 2.5,
+  });
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -127,28 +134,30 @@ export const useAudioRecorder = () => {
           };
 
         },
-       // ✅ How long (in ms) the sound must stay above the threshold
-      // before it's considered as the user "started speaking"
-      voice_start: 400,
+        // ✅ How long (in ms) the sound must stay above the threshold
+        // before it's considered as the user "started speaking"
+        // voice_start: 400,
 
-      // ✅ How long (in ms) the sound must stay below the threshold
-      // before it's considered "silent" (i.e., the user stopped speaking)
-      voice_stop: 1000,
+        // ✅ How long (in ms) the sound must stay below the threshold
+        // before it's considered "silent" (i.e., the user stopped speaking)
+        // voice_stop: 1000,
 
-      // ✅ Controls how smooth the energy curve is.
-      // Higher values (closer to 1) = smoother, but slower response.
-      // Lower values = more reactive, but jittery.
-      smoothingTimeConstant: 0.95,
+        // ✅ Controls how smooth the energy curve is.
+        // Higher values (closer to 1) = smoother, but slower response.
+        // Lower values = more reactive, but jittery.
+        // smoothingTimeConstant: 0.95,
 
-      // ✅ Multiplier of average energy needed to trigger voice start.
-      // Higher = requires louder sound to trigger speech.
-      // Use 3.0 to avoid false triggers from background noise.
-      energy_threshold_ratio_pos: 3.5,
+        // ✅ Multiplier of average energy needed to trigger voice start.
+        // Higher = requires louder sound to trigger speech.
+        // Use 3.0 to avoid false triggers from background noise.
+        // energy_threshold_ratio_pos: 3.5,
 
-      // ✅ Multiplier of average energy needed to confirm silence.
-      // Higher = more lenient; avoids cutting off speech too quickly.
-      // Use 2.0 to ensure it doesn't stop on soft trailing speech.
-      energy_threshold_ratio_neg: 2.5,
+        // ✅ Multiplier of average energy needed to confirm silence.
+        // Higher = more lenient; avoids cutting off speech too quickly.
+        // Use 2.0 to ensure it doesn't stop on soft trailing speech.
+        // energy_threshold_ratio_neg: 2.5,
+
+        ...vadConfig,
       } as any); // ✅ This disables TypeScript validation for this object
 
       vadControllerRef.current = vadController;
@@ -205,5 +214,7 @@ export const useAudioRecorder = () => {
   return {
     ...audioState,
     toggleRecording,
+    vadConfig,
+    setVadConfig,
   };
 };
