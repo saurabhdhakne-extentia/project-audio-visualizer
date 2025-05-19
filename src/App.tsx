@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AudioVisualizer from './components/AudioVisualizer';
 import MicrophoneButton from './components/MicrophoneButton';
 import InfoPanel from './components/InfoPanel';
 import { useAudioRecorder } from './hooks/useAudioRecorder';
+import { useKeywordSpotting } from './hooks/useKeywordSpotting';
 
 function App() {
+
+  const [keywordMode, setKeywordMode] = useState(false);
+
   const {
     isRecording,
     audioData,
@@ -13,6 +17,14 @@ function App() {
     vadConfig,
     setVadConfig
   } = useAudioRecorder();
+
+  // ✅ Start recording when hotword is detected
+  useKeywordSpotting(() => {
+    if (!isRecording) {
+      console.log("🎬 Hotword triggered: toggling recording");
+      toggleRecording();
+    }
+  }, keywordMode);
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-6">
@@ -36,6 +48,17 @@ function App() {
 
         <InfoPanel isRecording={isRecording} />
       </main>
+      <div className="mt-6 flex items-center gap-3">
+        <label className="text-gray-700 font-medium">🎙️ Voice Trigger Mode</label>
+        <input
+          type="checkbox"
+          checked={keywordMode}
+          onChange={() => setKeywordMode(prev => !prev)}
+        />
+        <span className="text-sm text-gray-500">
+          {keywordMode ? "Listening for 'stop'" : "Manual start only"}
+        </span>
+      </div>
 
       <div className="w-full max-w-2xl mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">
         {[
