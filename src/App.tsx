@@ -1,8 +1,9 @@
-import React from 'react';
 import AudioVisualizer from './components/AudioVisualizer';
 import MicrophoneButton from './components/MicrophoneButton';
 import InfoPanel from './components/InfoPanel';
 import { useAudioRecorder } from './hooks/useAudioRecorder';
+import { useState, useEffect } from 'react';
+import { useHotwordDetector } from './hooks/useHotwordDetector';
 
 function App() {
   const {
@@ -13,6 +14,38 @@ function App() {
     vadConfig,
     setVadConfig
   } = useAudioRecorder();
+
+  const [listeningForHotword, setListeningForHotword] = useState(false);
+  const [listeningWithVAD, setListeningWithVAD] = useState(false);
+
+  // Handle hotword detection → start VAD
+  useHotwordDetector("hey", () => {
+    console.log("🔥 Hotword detected!");
+    setListeningForHotword(false);
+    setListeningWithVAD(true);
+    toggleRecording();
+  }, listeningForHotword);
+
+  // Handle silence after VAD → resume hotword
+  useEffect(() => {
+    if (!isRecording && listeningWithVAD) {
+      console.log("🔴 Silence Detected after Hotword");
+      setListeningWithVAD(false);
+      setListeningForHotword(true);
+    }
+  }, [isRecording, listeningWithVAD]);
+
+  const handleClick = () => {
+    if (!listeningForHotword && !listeningWithVAD) {
+      setListeningForHotword(true);
+      console.log("🎤 Hotword detection started...");
+    } else {
+      setListeningForHotword(false);
+      setListeningWithVAD(false);
+      if (isRecording) toggleRecording();
+      console.log("🛑 All listening stopped");
+    }
+  };
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col items-center justify-center p-6">
@@ -29,8 +62,8 @@ function App() {
         </div>
 
         <MicrophoneButton
-          isRecording={isRecording}
-          onToggleRecording={toggleRecording}
+          isRecording={listeningForHotword || listeningWithVAD}
+          onToggleRecording={handleClick}
           hasPermission={hasPermission}
         />
 
@@ -101,8 +134,6 @@ function App() {
           </div>
         ))}
       </div>
-
-
 
       <footer className="mt-12 text-sm text-gray-400">
         © {new Date().getFullYear()} Audio Visualizer
