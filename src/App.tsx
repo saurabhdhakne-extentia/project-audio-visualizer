@@ -30,6 +30,8 @@ function App() {
   useEffect(() => {
     if (!isRecording && listeningWithVAD) {
       console.log("🔴 Silence Detected after Hotword");
+      console.log("📡 Sending the audio to the API")
+      console.log("")
       setListeningWithVAD(false);
       setListeningForHotword(true);
     }
