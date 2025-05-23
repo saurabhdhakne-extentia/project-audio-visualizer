@@ -17,6 +17,7 @@ function App() {
 
   const [listeningForHotword, setListeningForHotword] = useState(false);
   const [listeningWithVAD, setListeningWithVAD] = useState(false);
+  const [transcripts, setTranscripts] = useState<string[]>([]);
 
   // Handle hotword detection → start VAD
   useHotwordDetector("hey", () => {
@@ -24,7 +25,7 @@ function App() {
     setListeningForHotword(false);
     setListeningWithVAD(true);
     toggleRecording();
-  }, listeningForHotword);
+  }, listeningForHotword, setTranscripts);
 
   // Handle silence after VAD → resume hotword
   useEffect(() => {
@@ -70,6 +71,17 @@ function App() {
         />
 
         <InfoPanel isRecording={isRecording} />
+        {transcripts.length > 0 && (
+          <div className="w-full bg-white rounded shadow-md p-4 mt-4 max-w-2xl">
+            <h2 className="text-lg font-semibold text-gray-700 mb-2">📝 Transcripts</h2>
+            <ul className="list-disc list-inside text-gray-800 space-y-1 text-sm max-h-48 overflow-y-auto">
+              {transcripts.map((t, i) => (
+                <li key={i}>{t}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
       </main>
 
       <div className="w-full max-w-2xl mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-700">

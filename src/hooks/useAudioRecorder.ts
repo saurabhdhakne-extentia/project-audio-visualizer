@@ -127,6 +127,9 @@ export const useAudioRecorder = () => {
           mediaRecorderRef.current?.stop();
           mediaRecorderRef.current!.onstop = () => {
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            // const audioURL = URL.createObjectURL(audioBlob);
+            // console.log('🧩 Audio chunk size (bytes):', audioBlob.size);
+            // console.log('🔗 Audio preview URL:', audioURL);
             console.log('🧩 Audio chunk size (bytes):', audioBlob.size);
             console.log('📡 Backend Call: sending audio chunk to backend...');
             console.log("")
