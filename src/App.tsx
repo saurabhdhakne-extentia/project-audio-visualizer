@@ -14,10 +14,10 @@ function App() {
     toggleRecording,
     vadConfig,
     setVadConfig,
-  } = useAudioRecorder('siri', (transcript: string) => {
-    console.log('🔥 Hotword Detected in Transcript');
-    setTranscripts(prev => [...prev, transcript]);
-  });
+  } = useAudioRecorder(['hey siri', 'siri', 'hey maya', 'maya', 'hey shaktiman', 'shaktiman'], (transcript) => {
+  console.log('🔥 Hotword Detected:', transcript);
+   setTranscripts(prev => [...prev, transcript]);
+});
 
   const sliderConfigs: {
     key: keyof typeof vadConfig;

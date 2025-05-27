@@ -8,7 +8,7 @@ const INITIAL_AUDIO_STATE: AudioState = {
   hasPermission: null,
 };
 
-export const useAudioRecorder = (hotword: string, onHotword: (t: string) => void) => {
+export const useAudioRecorder = (hotwords: string[], onHotword: (t: string) => void) => {
   const [audioState, setAudioState] = useState<AudioState>(INITIAL_AUDIO_STATE);
   const [vadConfig, setVadConfig] = useState({
     voice_start: 400,
@@ -41,7 +41,7 @@ export const useAudioRecorder = (hotword: string, onHotword: (t: string) => void
         if (event.results[i].isFinal) {
           const transcript = event.results[i][0].transcript.trim().toLowerCase();
           console.log('🎯 Transcript:', transcript);
-          if (transcript.includes(hotword.toLowerCase())) {
+          if (hotwords.some(word => transcript.includes(word.toLowerCase()))) {
             onHotword(transcript);
           }
         }
@@ -142,7 +142,7 @@ export const useAudioRecorder = (hotword: string, onHotword: (t: string) => void
     } as any);
 
     vadControllerRef.current = vadController;
-  }, [audioState.hasPermission, vadConfig, checkMicrophonePermission, hotword, onHotword]);
+  }, [audioState.hasPermission, vadConfig, checkMicrophonePermission, hotwords, onHotword]);
 
   const stopRecording = useCallback(() => {
     if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
