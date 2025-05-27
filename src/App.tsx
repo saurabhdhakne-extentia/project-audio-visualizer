@@ -14,7 +14,7 @@ function App() {
     toggleRecording,
     vadConfig,
     setVadConfig,
-  } = useAudioRecorder('hey', (transcript: string) => {
+  } = useAudioRecorder('siri', (transcript: string) => {
     console.log('🔥 Hotword Detected in Transcript');
     setTranscripts(prev => [...prev, transcript]);
   });

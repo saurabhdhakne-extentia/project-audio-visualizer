@@ -16,7 +16,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ audioData, isRecordin
   const maxBarHeight = (circleSize - (padding * 2)) / 2;
 
   return (
-    <div className="relative w-[150px] h-[150px] overflow-hidden">
+    <div className="relative w-[150px] h-[150px] overflow-hidden mb-5">
       {/* Circle border */}
       <div 
         className="absolute inset-0 rounded-full border-2 border-emerald-500 overflow-hidden"
