@@ -8,7 +8,7 @@ const INITIAL_AUDIO_STATE: AudioState = {
   hasPermission: null,
 };
 
-export const useAudioRecorder = (hotwords: string[], onHotword: (t: string) => void) => {
+export const useAudioRecorder = (hotwords: string[], hotwordEnabled: boolean, onTranscript: (t: string) => void) => {
   const [audioState, setAudioState] = useState<AudioState>(INITIAL_AUDIO_STATE);
   const [vadConfig, setVadConfig] = useState({
     voice_start: 400,
@@ -27,7 +27,9 @@ export const useAudioRecorder = (hotwords: string[], onHotword: (t: string) => v
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  const startRecognition = () => {
+const startRecognition = (hotwords: string[], hotwordEnabled: boolean) => {
+    stopRecognition(); // always clean up old instance first
+
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) return;
 
@@ -40,13 +42,20 @@ export const useAudioRecorder = (hotwords: string[], onHotword: (t: string) => v
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
           const transcript = event.results[i][0].transcript.trim().toLowerCase();
-          console.log('🎯 Transcript:', transcript);
-          if (hotwords.some(word => transcript.includes(word.toLowerCase()))) {
-            onHotword(transcript);
+
+          if (hotwordEnabled) {
+            if (hotwords.some(word => transcript.includes(word))) {
+              onTranscript(transcript);
+              console.log('🔥 Hotword detected:', transcript);
+            }
+          } else {
+            onTranscript(transcript);
+            console.log('📝 Transcript added:', transcript);
           }
         }
       }
     };
+
 
     recognition.onerror = (e: any) => {
       console.warn("Recognition error", e);
@@ -119,7 +128,8 @@ export const useAudioRecorder = (hotwords: string[], onHotword: (t: string) => v
         mediaRecorder.start();
         setAudioState(prev => ({ ...prev, isRecording: true }));
         draw();
-        startRecognition();
+        startRecognition(hotwords, hotwordEnabled); // ✅ pass dynamic values
+
       },
       onVoiceStop: () => {
         console.log("🔴 Silence Detected");
@@ -142,7 +152,7 @@ export const useAudioRecorder = (hotwords: string[], onHotword: (t: string) => v
     } as any);
 
     vadControllerRef.current = vadController;
-  }, [audioState.hasPermission, vadConfig, checkMicrophonePermission, hotwords, onHotword]);
+  }, [audioState.hasPermission, vadConfig, checkMicrophonePermission, hotwords, hotwordEnabled, onTranscript]);
 
   const stopRecording = useCallback(() => {
     if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);

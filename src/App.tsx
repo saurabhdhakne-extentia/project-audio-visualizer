@@ -6,6 +6,7 @@ import { useAudioRecorder } from './hooks/useAudioRecorder';
 
 function App() {
   const [transcripts, setTranscripts] = useState<string[]>([]);
+  const [hotwordEnabled, setHotwordEnabled] = useState(true); // ✅ toggle state
 
   const {
     isRecording,
@@ -14,10 +15,10 @@ function App() {
     toggleRecording,
     vadConfig,
     setVadConfig,
-  } = useAudioRecorder(['hey siri', 'siri', 'hey maya', 'maya', 'hey shaktiman', 'shaktiman'], (transcript) => {
-  console.log('🔥 Hotword Detected:', transcript);
-   setTranscripts(prev => [...prev, transcript]);
-});
+  } = useAudioRecorder(['hey siri', 'siri', 'hey maya', 'maya', 'hey shaktiman', 'shaktiman'], hotwordEnabled, (transcript) => {
+    console.log('🔥 Hotword Detected:', transcript);
+    setTranscripts(prev => [...prev, transcript]);
+  });
 
   const sliderConfigs: {
     key: keyof typeof vadConfig;
@@ -26,12 +27,12 @@ function App() {
     max: number;
     step: number;
   }[] = [
-    { key: 'voice_start', label: '🕒 Voice Start (ms)', min: 100, max: 1000, step: 50 },
-    { key: 'voice_stop', label: '🕒 Voice Stop (ms)', min: 300, max: 1500, step: 50 },
-    { key: 'smoothingTimeConstant', label: '📉 Smoothing', min: 0.5, max: 0.99, step: 0.01 },
-    { key: 'energy_threshold_ratio_pos', label: '📈 Energy Threshold Pos', min: 1, max: 5, step: 0.1 },
-    { key: 'energy_threshold_ratio_neg', label: '📉 Energy Threshold Neg', min: 1, max: 5, step: 0.1 },
-  ];
+      { key: 'voice_start', label: '🕒 Voice Start (ms)', min: 100, max: 1000, step: 50 },
+      { key: 'voice_stop', label: '🕒 Voice Stop (ms)', min: 300, max: 1500, step: 50 },
+      { key: 'smoothingTimeConstant', label: '📉 Smoothing', min: 0.5, max: 0.99, step: 0.01 },
+      { key: 'energy_threshold_ratio_pos', label: '📈 Energy Threshold Pos', min: 1, max: 5, step: 0.1 },
+      { key: 'energy_threshold_ratio_neg', label: '📉 Energy Threshold Neg', min: 1, max: 5, step: 0.1 },
+    ];
 
   return (
     <div className="min-h-screen w-full bg-gray-100 p-6 flex flex-col items-center">
@@ -44,6 +45,25 @@ function App() {
         onToggleRecording={toggleRecording}
         hasPermission={hasPermission}
       />
+
+      <div className="my-4 flex items-center gap-4">
+        <span className="text-sm font-medium text-gray-700">
+          Enable Hotword Detection
+        </span>
+        <button
+          onClick={() => setHotwordEnabled(prev => !prev)}
+          className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${
+            hotwordEnabled ? 'bg-green-500' : 'bg-gray-300'
+          }`}
+        >
+          <div
+            className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
+              hotwordEnabled ? 'translate-x-6' : 'translate-x-0'
+            }`}
+          />
+        </button>
+      </div>
+
 
       <InfoPanel isRecording={isRecording} />
 
