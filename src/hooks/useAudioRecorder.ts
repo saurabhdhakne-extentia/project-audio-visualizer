@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import vad from 'voice-activity-detection';
 import { AudioState } from '../types';
+import { closeSocket, initSocket, sendAudioChunk } from '../services/socketClient';
 
 const INITIAL_AUDIO_STATE: AudioState = {
   isRecording: false,
@@ -10,6 +11,7 @@ const INITIAL_AUDIO_STATE: AudioState = {
 
 export const useAudioRecorder = (hotwords: string[], hotwordEnabled: boolean, onTranscript: (t: string) => void) => {
   const [audioState, setAudioState] = useState<AudioState>(INITIAL_AUDIO_STATE);
+  const hotwordDetectedRef = useRef(false);
   const [vadConfig, setVadConfig] = useState({
     voice_start: 400,
     voice_stop: 1000,
@@ -27,7 +29,7 @@ export const useAudioRecorder = (hotwords: string[], hotwordEnabled: boolean, on
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-const startRecognition = (hotwords: string[], hotwordEnabled: boolean) => {
+  const startRecognition = (hotwords: string[], hotwordEnabled: boolean) => {
     stopRecognition(); // always clean up old instance first
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -42,11 +44,16 @@ const startRecognition = (hotwords: string[], hotwordEnabled: boolean) => {
       for (let i = event.resultIndex; i < event.results.length; ++i) {
         if (event.results[i].isFinal) {
           const transcript = event.results[i][0].transcript.trim().toLowerCase();
+          console.log("🗣️ Final transcript:", transcript); // NEW
 
           if (hotwordEnabled) {
+            console.log("🔍 Checking hotwords:", hotwords); // NEW
             if (hotwords.some(word => transcript.includes(word))) {
+              hotwordDetectedRef.current = true;
               onTranscript(transcript);
-              console.log('🔥 Hotword detected:', transcript);
+              console.log('🔥 Hotword detected, flag set');
+            } else {
+              console.log('⛔ Hotword not matched');
             }
           } else {
             onTranscript(transcript);
@@ -55,6 +62,7 @@ const startRecognition = (hotwords: string[], hotwordEnabled: boolean) => {
         }
       }
     };
+
 
 
     recognition.onerror = (e: any) => {
@@ -100,8 +108,14 @@ const startRecognition = (hotwords: string[], hotwordEnabled: boolean) => {
     mediaRecorderRef.current = mediaRecorder;
 
     mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      console.log("📥 Chunk received:", e.data?.size);
+      if (e.data.size > 0) {
+        audioChunksRef.current.push(e.data);
+      } else {
+        console.warn("⚠️ Empty chunk received");
+      }
     };
+
 
     const audioContext = new AudioContext();
     audioContextRef.current = audioContext;
@@ -144,9 +158,21 @@ const startRecognition = (hotwords: string[], hotwordEnabled: boolean) => {
         mediaRecorder.stop();
         mediaRecorder.onstop = () => {
           const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          console.log('🧩 Audio chunk size:', audioBlob.size);
+          console.log('🧩 Audio blob created, size:', audioBlob.size);
+          console.log('🔥 Hotword flag before send:', hotwordDetectedRef.current); // NEW
+
+          if (hotwordDetectedRef.current) {
+            console.log("📤 Sending audio chunk to backend...");
+            sendAudioChunk(audioBlob);
+            hotwordDetectedRef.current = false;
+          } else {
+            // console.log("🚫 Skipping send — hotword not detected");
+          }
+
           audioChunksRef.current = [];
         };
+
+
       },
       ...vadConfig,
     } as any);
